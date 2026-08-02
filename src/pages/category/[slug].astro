@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getCategories, getPostUrl, formatDate } from '@/utils/posts';
+import { slugify } from '@/utils/slugify';
+import { SITE } from '@/config/site';
+
+export async function getStaticPaths() {
+  const allPosts = await getAllPosts();
+  const categories = getCategories(allPosts);
+  return categories.map((cat) => ({
+    params: { slug: cat.slug },
+    props: { categoryName: cat.name, count: cat.count },
+  }));
+}
+
+const { categoryName, count } = Astro.props;
+const allPosts = await getAllPosts();
+const posts = allPosts.filter((p) => slugify(p.data.category) === Astro.params.slug);
+---
+
+<BaseLayout
+  title={`Category: ${categoryName}`}
+  description={`${count} articles in ${categoryName}`}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="breadcrumb__item"><a href="/">Home</a></span>
+    <span class="breadcrumb__item"><a href="/categories/">Categories</a></span>
+    <span class="breadcrumb__item"><span class="breadcrumb__current">{categoryName}</span></span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header__label">Category</div>
+    <h1 class="page-header__title">{categoryName}</h1>
+    <p class="page-header__desc">{count} article{count !== 1 ? 's' : ''}</p>
+  </div>
+
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li class="post-row">
+        <time class="post-row__date" datetime={post.data.date.toISOString()}>
+          {formatDate(post.data.date, 'short')}
+        </time>
+        <div class="post-row__main">
+          <div class="post-row__title">
+            <a href={getPostUrl(post)}>{post.data.title}</a>
+          </div>
+          <div class="post-row__desc">{post.data.description}</div>
+          <div class="post-row__meta">
+            {post.data.tags.slice(0, 3).map((t) => (
+              <a href={`/tag/${slugify(t)}/`}>{t}</a>
+            ))}
+          </div>
+        </div>
+        <div class="post-row__badges">
+          {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
+        </div>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

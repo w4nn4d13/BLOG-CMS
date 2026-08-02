@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getSeries } from '@/utils/posts';
+
+const allPosts = await getAllPosts();
+const seriesList = getSeries(allPosts);
+---
+
+<BaseLayout title="Series" description="Multi-part article series">
+  <div class="page-header">
+    <div class="page-header__label">Publications</div>
+    <h1 class="page-header__title">Series</h1>
+    <p class="page-header__desc">{seriesList.length} series</p>
+  </div>
+
+  <div class="taxonomy-grid">
+    {seriesList.map((s) => (
+      <a href={`/series/${s.slug}/`} class="taxonomy-card">
+        <span class="taxonomy-card__name">{s.name}</span>
+        <span class="taxonomy-card__count">{s.count} part{s.count !== 1 ? 's' : ''}</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>

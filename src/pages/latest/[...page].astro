@@ -1,0 +1,101 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getPostUrl, formatDate, paginate } from '@/utils/posts';
+import { SITE } from '@/config/site';
+import { slugify } from '@/utils/slugify';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  const perPage = SITE.postsPerPage;
+  const total = Math.max(1, Math.ceil(posts.length / perPage));
+
+  return Array.from({ length: total }, (_, i) => {
+    const page = i + 1;
+    return {
+      params: { page: page === 1 ? undefined : String(page) },
+      props: { page },
+    };
+  });
+}
+
+const { page } = Astro.props;
+const allPosts = await getAllPosts();
+const paged = paginate(allPosts, page, SITE.postsPerPage);
+---
+
+<BaseLayout
+  title={page === 1 ? 'Latest Publications' : `Latest Publications — Page ${page}`}
+  description={`All published articles — page ${page} of ${paged.totalPages}`}
+>
+  <div class="page-header">
+    <div class="page-header__label">Publications</div>
+    <h1 class="page-header__title">Latest</h1>
+    <p class="page-header__desc">
+      {paged.totalItems} articles published
+    </p>
+  </div>
+
+  <ul class="post-list">
+    {paged.items.map((post) => (
+      <li class="post-row">
+        <time class="post-row__date" datetime={post.data.date.toISOString()}>
+          {formatDate(post.data.date, 'short')}
+        </time>
+        <div class="post-row__main">
+          <div class="post-row__title">
+            <a href={getPostUrl(post)}>{post.data.title}</a>
+          </div>
+          <div class="post-row__desc">{post.data.description}</div>
+          <div class="post-row__meta">
+            <a href={`/category/${slugify(post.data.category)}/`}>{post.data.category}</a>
+            {post.data.tags.slice(0, 3).map((t) => (
+              <a href={`/tag/${slugify(t)}/`}>{t}</a>
+            ))}
+          </div>
+        </div>
+        <div class="post-row__badges">
+          {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
+          {post.data.pinned && <span class="badge">PINNED</span>}
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  {paged.totalPages > 1 && (
+    <nav class="pagination" aria-label="Pagination">
+      <span class="pagination__info">
+        Page {paged.currentPage} of {paged.totalPages} — {paged.totalItems} articles
+      </span>
+      <div class="pagination__links">
+        {paged.hasPrev && (
+          <a
+            href={paged.currentPage - 1 === 1 ? '/latest/' : `/latest/${paged.currentPage - 1}/`}
+            class="pagination__link"
+            aria-label="Previous page"
+          >
+            ← Prev
+          </a>
+        )}
+        {Array.from({ length: paged.totalPages }, (_, i) => i + 1).map((p) => (
+          <a
+            href={p === 1 ? '/latest/' : `/latest/${p}/`}
+            class={`pagination__link${p === paged.currentPage ? ' pagination__link--active' : ''}`}
+            aria-label={`Page ${p}`}
+            aria-current={p === paged.currentPage ? 'page' : undefined}
+          >
+            {p}
+          </a>
+        ))}
+        {paged.hasNext && (
+          <a
+            href={`/latest/${paged.currentPage + 1}/`}
+            class="pagination__link"
+            aria-label="Next page"
+          >
+            Next →
+          </a>
+        )}
+      </div>
+    </nav>
+  )}
+</BaseLayout>

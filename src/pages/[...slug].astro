@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((page) => ({
+    params: { slug: page.id.replace(/\.mdx?$/, '') },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content } = await page.render();
+---
+
+<BaseLayout
+  title={page.data.title}
+  description={page.data.description}
+  noindex={page.data.noindex}
+  updatedDate={page.data.updated}
+>
+  <div class="page-header">
+    <h1 class="page-header__title">{page.data.title}</h1>
+    {page.data.updated && (
+      <p style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle);">
+        Updated: {page.data.updated.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </p>
+    )}
+  </div>
+
+  <div class="prose" style="max-width: var(--width-content);">
+    <Content />
+  </div>
+</BaseLayout>

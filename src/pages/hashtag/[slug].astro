@@ -1,0 +1,59 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getHashtags, getPostUrl, formatDate } from '@/utils/posts';
+import { normalizeHashtag, slugify } from '@/utils/slugify';
+
+export async function getStaticPaths() {
+  const allPosts = await getAllPosts();
+  const hashtags = getHashtags(allPosts);
+  return hashtags.map((ht) => ({
+    params: { slug: ht.normalized },
+    props: { display: ht.display, count: ht.count },
+  }));
+}
+
+const { display, count } = Astro.props;
+const allPosts = await getAllPosts();
+const posts = allPosts.filter((p) =>
+  p.data.hashtags.some((ht) => normalizeHashtag(ht) === Astro.params.slug)
+);
+---
+
+<BaseLayout
+  title={`#${display}`}
+  description={`${count} articles tagged with #${display}`}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="breadcrumb__item"><a href="/">Home</a></span>
+    <span class="breadcrumb__item"><a href="/hashtags/">Hashtags</a></span>
+    <span class="breadcrumb__item"><span class="breadcrumb__current">#{display}</span></span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header__label">Hashtag</div>
+    <h1 class="page-header__title">#{display}</h1>
+    <p class="page-header__desc">{count} article{count !== 1 ? 's' : ''}</p>
+  </div>
+
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li class="post-row">
+        <time class="post-row__date" datetime={post.data.date.toISOString()}>
+          {formatDate(post.data.date, 'short')}
+        </time>
+        <div class="post-row__main">
+          <div class="post-row__title">
+            <a href={getPostUrl(post)}>{post.data.title}</a>
+          </div>
+          <div class="post-row__desc">{post.data.description}</div>
+          <div class="post-row__meta">
+            <a href={`/category/${slugify(post.data.category)}/`}>{post.data.category}</a>
+          </div>
+        </div>
+        <div class="post-row__badges">
+          {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
+        </div>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

@@ -1,0 +1,4 @@
+# Netlify / Cloudflare Pages redirects
+# Add entries below when slugs change:
+# /posts/old-slug/ /posts/new-slug/ 301
+

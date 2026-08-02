@@ -1,0 +1,50 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getSeries, getPostUrl, formatDate } from '@/utils/posts';
+
+export async function getStaticPaths() {
+  const allPosts = await getAllPosts();
+  const series = getSeries(allPosts);
+  return series.map((s) => ({
+    params: { slug: s.slug },
+    props: { seriesName: s.name, count: s.count, posts: s.posts },
+  }));
+}
+
+const { seriesName, count, posts } = Astro.props;
+---
+
+<BaseLayout
+  title={`Series: ${seriesName}`}
+  description={`${count}-part series: ${seriesName}`}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="breadcrumb__item"><a href="/">Home</a></span>
+    <span class="breadcrumb__item"><a href="/series/">Series</a></span>
+    <span class="breadcrumb__item"><span class="breadcrumb__current">{seriesName}</span></span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header__label">Series — {count} parts</div>
+    <h1 class="page-header__title">{seriesName}</h1>
+  </div>
+
+  <ol class="post-list" style="list-style: none; padding: 0;">
+    {posts.map((post, idx) => (
+      <li class="post-row">
+        <div class="post-row__date" style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle);">
+          Part {post.data.seriesOrder ?? idx + 1}
+        </div>
+        <div class="post-row__main">
+          <div class="post-row__title">
+            <a href={getPostUrl(post)}>{post.data.title}</a>
+          </div>
+          <div class="post-row__desc">{post.data.description}</div>
+          <div class="post-row__meta">
+            <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date, 'short')}</time>
+          </div>
+        </div>
+      </li>
+    ))}
+  </ol>
+</BaseLayout>

@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getCategories } from '@/utils/posts';
+
+const allPosts = await getAllPosts();
+const categories = getCategories(allPosts);
+---
+
+<BaseLayout title="Categories" description="Browse all article categories">
+  <div class="page-header">
+    <div class="page-header__label">Taxonomy</div>
+    <h1 class="page-header__title">Categories</h1>
+    <p class="page-header__desc">{categories.length} categories across {allPosts.length} articles</p>
+  </div>
+
+  <div class="taxonomy-grid">
+    {categories.map((cat) => (
+      <a href={`/category/${cat.slug}/`} class="taxonomy-card">
+        <span class="taxonomy-card__name">{cat.name}</span>
+        <span class="taxonomy-card__count">{cat.count} article{cat.count !== 1 ? 's' : ''}</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>

@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getHashtags } from '@/utils/posts';
+
+const allPosts = await getAllPosts();
+const hashtags = getHashtags(allPosts);
+---
+
+<BaseLayout title="Hashtags" description="Browse all hashtags used in articles">
+  <div class="page-header">
+    <div class="page-header__label">Taxonomy</div>
+    <h1 class="page-header__title">Hashtags</h1>
+    <p class="page-header__desc">{hashtags.length} hashtags across {allPosts.length} articles</p>
+  </div>
+
+  <div class="taxonomy-grid">
+    {hashtags.map((ht) => (
+      <a href={`/hashtag/${ht.normalized}/`} class="taxonomy-card">
+        <span class="taxonomy-card__name">#{ht.display}</span>
+        <span class="taxonomy-card__count">{ht.count} article{ht.count !== 1 ? 's' : ''}</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>

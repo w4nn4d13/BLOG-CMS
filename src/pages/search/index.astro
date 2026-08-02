@@ -1,0 +1,123 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getPostUrl, formatDate } from '@/utils/posts';
+import { slugify } from '@/utils/slugify';
+
+const allPosts = await getAllPosts();
+
+// Build search index for client-side search
+const searchIndex = allPosts.map((post) => ({
+  title: post.data.title,
+  description: post.data.description,
+  url: getPostUrl(post),
+  category: post.data.category,
+  tags: post.data.tags,
+  hashtags: post.data.hashtags.map((h) => h.replace(/^#/, '')),
+  author: post.data.author,
+  date: post.data.date.toISOString().slice(0, 10),
+}));
+---
+
+<BaseLayout title="Search" description="Search all articles">
+  <div class="page-header">
+    <div class="page-header__label">Search</div>
+    <h1 class="page-header__title">Search</h1>
+    <p class="page-header__desc">Search across all articles, categories, tags and hashtags.</p>
+  </div>
+
+  <form class="search-form" role="search" id="search-form" onsubmit="return false;">
+    <input
+      type="search"
+      id="search-input"
+      name="q"
+      placeholder="Search articles..."
+      aria-label="Search articles"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button type="submit" aria-label="Search">SEARCH</button>
+  </form>
+
+  <div id="search-status" aria-live="polite" style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle); margin-bottom: var(--space-6); min-height: 1.5em;"></div>
+
+  <ul class="post-list" id="search-results" role="list"></ul>
+
+  <div id="search-empty" style="display: none; color: var(--fg-muted); font-family: var(--font-mono); font-size: var(--text-sm); padding: var(--space-8) 0;">
+    No articles found for this search.
+  </div>
+</BaseLayout>
+
+<script define:vars={{ searchIndex }}>
+  const input = document.getElementById('search-input');
+  const results = document.getElementById('search-results');
+  const status = document.getElementById('search-status');
+  const empty = document.getElementById('search-empty');
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background: var(--fg); color: var(--bg); padding: 0 2px;">$1</mark>');
+  }
+
+  function search(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      results.innerHTML = '';
+      status.textContent = '';
+      empty.style.display = 'none';
+      return;
+    }
+
+    const tokens = q.split(/\s+/);
+    const matched = searchIndex.filter((item) => {
+      const hay = [
+        item.title,
+        item.description,
+        item.category,
+        item.author,
+        ...item.tags,
+        ...item.hashtags,
+      ].join(' ').toLowerCase();
+      return tokens.every((t) => hay.includes(t));
+    });
+
+    status.textContent = matched.length === 0
+      ? ''
+      : `${matched.length} result${matched.length !== 1 ? 's' : ''} for "${query}"`;
+
+    empty.style.display = matched.length === 0 ? 'block' : 'none';
+
+    results.innerHTML = matched.map((item) => `
+      <li class="post-row">
+        <time class="post-row__date">${item.date}</time>
+        <div class="post-row__main">
+          <div class="post-row__title">
+            <a href="${item.url}">${highlight(item.title, q)}</a>
+          </div>
+          <div class="post-row__desc">${highlight(item.description, q)}</div>
+          <div class="post-row__meta">
+            <span>${item.category}</span>
+            ${item.tags.slice(0, 3).map((t) => `<span>${t}</span>`).join('')}
+          </div>
+        </div>
+      </li>
+    `).join('');
+  }
+
+  // Restore query from URL
+  const params = new URLSearchParams(window.location.search);
+  const initial = params.get('q') || '';
+  if (initial && input) {
+    input.value = initial;
+    search(initial);
+  }
+
+  input?.addEventListener('input', (e) => {
+    const q = e.target.value;
+    search(q);
+    const url = new URL(window.location.href);
+    if (q) url.searchParams.set('q', q);
+    else url.searchParams.delete('q');
+    window.history.replaceState({}, '', url.toString());
+  });
+</script>

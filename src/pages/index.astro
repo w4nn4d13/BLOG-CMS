@@ -1,0 +1,193 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
+import { getAllPosts, getCategories, getHashtags, getPostUrl, formatDate } from '@/utils/posts';
+import { slugify } from '@/utils/slugify';
+
+const allPosts = await getAllPosts();
+const featured = allPosts.filter((p) => p.data.featured).slice(0, 3);
+const pinned = allPosts.filter((p) => p.data.pinned && !p.data.featured).slice(0, 5);
+const latest = allPosts.slice(0, SITE.postsPerPage);
+const categories = getCategories(allPosts).slice(0, 8);
+const topHashtags = getHashtags(allPosts).slice(0, 20);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.siteName,
+  description: SITE.siteDescription,
+  url: SITE.siteURL,
+  author: {
+    '@type': 'Person',
+    name: SITE.author,
+  },
+};
+---
+
+<BaseLayout
+  description={SITE.siteDescription}
+  schema={schema}
+>
+  <!-- Site masthead -->
+  <div style="border-bottom: 1px solid var(--border); margin-bottom: var(--space-10); padding-bottom: var(--space-8);">
+    <div style="font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-subtle); margin-bottom: var(--space-3);">
+      {SITE.author} — {SITE.authorRole}
+    </div>
+    <h1 style="font-size: var(--text-4xl); font-family: var(--font-ui); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: var(--space-3);">
+      {SITE.siteName}
+    </h1>
+    <p style="font-size: var(--text-lg); color: var(--fg-muted); max-width: 60ch; line-height: var(--leading-snug);">
+      {SITE.siteDescription}
+    </p>
+  </div>
+
+  <div class="home-grid">
+    <div>
+      <!-- Featured posts -->
+      {featured.length > 0 && (
+        <section aria-label="Featured articles" style="margin-bottom: var(--space-10);">
+          <div class="section-head">
+            <span class="section-head__title">Featured</span>
+            <a href="/latest/" class="section-head__more">All articles →</a>
+          </div>
+          {featured.map((post) => (
+            <article class="featured-post">
+              <div class="featured-post__label">Featured · {post.data.category}</div>
+              <h2 class="featured-post__title">
+                <a href={getPostUrl(post)}>{post.data.title}</a>
+              </h2>
+              <p class="featured-post__desc">{post.data.description}</p>
+              <div class="featured-post__meta">
+                <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+                <span>{post.data.author}</span>
+                {post.data.tags.slice(0, 3).map((t) => (
+                  <a href={`/tag/${slugify(t)}/`} class="badge">{t}</a>
+                ))}
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+
+      <!-- Pinned posts -->
+      {pinned.length > 0 && (
+        <section aria-label="Pinned articles" style="margin-bottom: var(--space-10);">
+          <div class="section-head">
+            <span class="section-head__title">Pinned</span>
+          </div>
+          <ul class="post-list">
+            {pinned.map((post) => (
+              <li class="post-row">
+                <time class="post-row__date" datetime={post.data.date.toISOString()}>
+                  {formatDate(post.data.date, 'short')}
+                </time>
+                <div class="post-row__main">
+                  <div class="post-row__title">
+                    <a href={getPostUrl(post)}>{post.data.title}</a>
+                  </div>
+                  <div class="post-row__desc">{post.data.description}</div>
+                </div>
+                <div class="post-row__badges">
+                  <span class="badge badge--filled">PINNED</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <!-- Latest publications -->
+      <section aria-label="Latest publications">
+        <div class="section-head">
+          <span class="section-head__title">Latest Publications</span>
+          <a href="/latest/" class="section-head__more">All →</a>
+        </div>
+        <ul class="post-list">
+          {latest.map((post) => (
+            <li class="post-row">
+              <time class="post-row__date" datetime={post.data.date.toISOString()}>
+                {formatDate(post.data.date, 'short')}
+              </time>
+              <div class="post-row__main">
+                <div class="post-row__title">
+                  <a href={getPostUrl(post)}>{post.data.title}</a>
+                </div>
+                <div class="post-row__meta">
+                  <span>{post.data.category}</span>
+                  {post.data.tags.slice(0, 2).map((t) => (
+                    <a href={`/tag/${slugify(t)}/`}>{t}</a>
+                  ))}
+                </div>
+              </div>
+              <div class="post-row__badges">
+                {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
+                <a href={`/category/${slugify(post.data.category)}/`} class="badge">{post.data.category}</a>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {allPosts.length > SITE.postsPerPage && (
+          <div style="text-align: center; margin-top: var(--space-8);">
+            <a href="/latest/" class="badge badge--muted" style="padding: var(--space-2) var(--space-8); font-size: var(--text-xs);">
+              View all {allPosts.length} articles →
+            </a>
+          </div>
+        )}
+      </section>
+    </div>
+
+    <!-- Sidebar -->
+    <aside>
+      <!-- Categories -->
+      <section style="margin-bottom: var(--space-8);">
+        <div class="section-head">
+          <span class="section-head__title">Categories</span>
+          <a href="/categories/" class="section-head__more">All →</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          {categories.map((cat) => (
+            <a
+              href={`/category/${cat.slug}/`}
+              style="display: flex; justify-content: space-between; padding: var(--space-2) 0; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: var(--text-sm); text-decoration: none; color: var(--fg-muted);"
+            >
+              <span style="color: var(--fg);">{cat.name}</span>
+              <span style="color: var(--fg-subtle);">{cat.count}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <!-- Top Hashtags -->
+      {topHashtags.length > 0 && (
+        <section style="margin-bottom: var(--space-8);">
+          <div class="section-head">
+            <span class="section-head__title">Hashtags</span>
+            <a href="/hashtags/" class="section-head__more">All →</a>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
+            {topHashtags.map((ht) => (
+              <a href={`/hashtag/${ht.normalized}/`} class="hashtag">
+                #{ht.display}
+                <span style="color: var(--fg-subtle); margin-left: 4px; font-size: 0.75em;">{ht.count}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Archive navigation -->
+      <section>
+        <div class="section-head">
+          <span class="section-head__title">Archive</span>
+          <a href="/archive/" class="section-head__more">Full →</a>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: var(--text-xs);">
+          <a href="/archive/" style="color: var(--fg-muted); text-decoration: none;">
+            Browse {allPosts.length} articles by date →
+          </a>
+        </div>
+      </section>
+    </aside>
+  </div>
+</BaseLayout>

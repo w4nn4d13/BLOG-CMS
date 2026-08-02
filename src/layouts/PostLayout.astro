@@ -1,0 +1,346 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { SITE } from '@/config/site';
+import { getPostUrl, getAllPosts, getRelatedPosts, formatDate } from '@/utils/posts';
+import { slugify, normalizeHashtag, displayHashtag } from '@/utils/slugify';
+import { buildToc } from '@/utils/toc';
+import type { Post } from '@/utils/posts';
+
+interface Props {
+  post: Post;
+  headings: Array<{ depth: number; text: string; slug: string }>;
+}
+
+const { post, headings } = Astro.props;
+const { data } = post;
+
+const allPosts = await getAllPosts();
+const postIndex = allPosts.findIndex((p) => p.id === post.id);
+const prevPost = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
+const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
+const relatedPosts = getRelatedPosts(post, allPosts);
+const toc = buildToc(headings);
+
+const postUrl = new URL(getPostUrl(post), SITE.siteURL).toString();
+
+// Series sibling posts
+let seriesPosts: Post[] = [];
+if (data.series) {
+  seriesPosts = allPosts
+    .filter((p) => p.data.series === data.series)
+    .sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+}
+
+// Schema.org
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: data.title,
+  description: data.description,
+  url: postUrl,
+  datePublished: data.date.toISOString(),
+  dateModified: (data.updated || data.date).toISOString(),
+  author: {
+    '@type': 'Person',
+    name: data.author,
+    url: new URL(`/author/${slugify(data.author)}/`, SITE.siteURL).toString(),
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.siteName,
+    url: SITE.siteURL,
+  },
+  mainEntityOfPage: postUrl,
+  ...(data.cover ? { image: new URL(data.cover, SITE.siteURL).toString() } : {}),
+};
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  canonical={data.canonical || postUrl}
+  ogImage={data.ogImage || data.cover}
+  ogType="article"
+  noindex={data.noindex}
+  publishedDate={data.date}
+  updatedDate={data.updated}
+  author={data.author}
+  schema={schema}
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="breadcrumb__item"><a href="/">Home</a></span>
+    <span class="breadcrumb__item"><a href="/latest/">Latest</a></span>
+    <span class="breadcrumb__item">
+      <a href={`/category/${slugify(data.category)}/`}>{data.category}</a>
+    </span>
+    <span class="breadcrumb__item">
+      <span class="breadcrumb__current" aria-current="page">{data.title}</span>
+    </span>
+  </nav>
+
+  <div class="article-layout">
+    <!-- Main content -->
+    <article class="article-content" itemscope itemtype="https://schema.org/BlogPosting">
+      <header class="article-header">
+        {data.cover && (
+          <img
+            src={data.cover}
+            alt={`Cover image for ${data.title}`}
+            class="article-cover"
+            loading="eager"
+          />
+        )}
+
+        <a href={`/category/${slugify(data.category)}/`} class="article-header__category">
+          {data.category}
+        </a>
+
+        <h1 class="article-header__title" itemprop="headline">{data.title}</h1>
+
+        <p class="article-header__desc" itemprop="description">{data.description}</p>
+
+        <div class="article-header__meta">
+          <time datetime={data.date.toISOString()} itemprop="datePublished">
+            {formatDate(data.date)}
+          </time>
+          {data.updated && data.updated.getTime() !== data.date.getTime() && (
+            <span>
+              Updated: <time datetime={data.updated.toISOString()} itemprop="dateModified">
+                {formatDate(data.updated)}
+              </time>
+            </span>
+          )}
+          <a href={`/author/${slugify(data.author)}/`} itemprop="author">
+            {data.author}
+          </a>
+          <span id="reading-time-placeholder" data-content-id={post.id}></span>
+          <span id="word-count-placeholder" data-content-id={post.id}></span>
+        </div>
+      </header>
+
+      <!-- Series box -->
+      {seriesPosts.length > 1 && (
+        <div class="series-box" role="navigation" aria-label="Article series">
+          <div class="series-box__label">Series</div>
+          <div class="series-box__name">{data.series}</div>
+          <ol class="series-list">
+            {seriesPosts.map((sp) => {
+              const isCurrent = sp.id === post.id;
+              return (
+                <li class={`series-list__item${isCurrent ? ' series-list__item--current' : ''}`}>
+                  <span class="series-list__num">{sp.data.seriesOrder ?? '?'}.</span>
+                  {isCurrent ? (
+                    <span aria-current="page">{sp.data.title}</span>
+                  ) : (
+                    <a href={getPostUrl(sp)}>{sp.data.title}</a>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      <!-- Article body -->
+      <div class="prose" itemprop="articleBody">
+        <slot />
+      </div>
+
+      <!-- Article footer -->
+      <footer class="article-footer">
+        <!-- Tags -->
+        {data.tags.length > 0 && (
+          <div class="article-tags" role="list" aria-label="Tags">
+            {data.tags.map((tag) => (
+              <a href={`/tag/${slugify(tag)}/`} class="badge" role="listitem">{tag}</a>
+            ))}
+          </div>
+        )}
+
+        <!-- Hashtags -->
+        {data.hashtags.length > 0 && (
+          <div class="article-hashtags" role="list" aria-label="Hashtags">
+            {data.hashtags.map((ht) => (
+              <a href={`/hashtag/${normalizeHashtag(ht)}/`} class="hashtag" role="listitem">
+                {displayHashtag(ht)}
+              </a>
+            ))}
+          </div>
+        )}
+
+        <!-- Share -->
+        <div class="share-links" style="margin-bottom: 1.5rem;">
+          <button class="copy-link-btn" id="copy-url-btn" data-url={postUrl}>
+            Copy Link
+          </button>
+          {SITE.social.twitter && (
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(data.title)}&url=${encodeURIComponent(postUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="share-link"
+            >
+              Share on X
+            </a>
+          )}
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="share-link"
+          >
+            LinkedIn
+          </a>
+        </div>
+
+        <!-- Author box -->
+        <div class="author-box" itemscope itemtype="https://schema.org/Person">
+          <div class="author-box__avatar" aria-hidden="true">
+            {data.author.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div class="author-box__name" itemprop="name">{data.author}</div>
+            <div class="author-box__role">{SITE.authorRole}</div>
+            <div class="author-box__bio">{SITE.authorBio}</div>
+          </div>
+        </div>
+
+        <!-- Prev/Next navigation -->
+        <nav class="post-nav" aria-label="Article navigation">
+          <div class="post-nav__item">
+            {prevPost && (
+              <>
+                <div class="post-nav__label">← Previous</div>
+                <a href={getPostUrl(prevPost)}>
+                  <div class="post-nav__title">{prevPost.data.title}</div>
+                </a>
+              </>
+            )}
+          </div>
+          <div class="post-nav__item post-nav__item--next">
+            {nextPost && (
+              <>
+                <div class="post-nav__label">Next →</div>
+                <a href={getPostUrl(nextPost)}>
+                  <div class="post-nav__title">{nextPost.data.title}</div>
+                </a>
+              </>
+            )}
+          </div>
+        </nav>
+
+        <!-- Related posts -->
+        {relatedPosts.length > 0 && (
+          <aside class="related-posts" aria-label="Related articles">
+            <div class="section-head">
+              <span class="section-head__title">Related Articles</span>
+            </div>
+            <ul class="post-list">
+              {relatedPosts.map((rp) => (
+                <li class="post-row">
+                  <time class="post-row__date" datetime={rp.data.date.toISOString()}>
+                    {formatDate(rp.data.date, 'short')}
+                  </time>
+                  <div class="post-row__main">
+                    <div class="post-row__title">
+                      <a href={getPostUrl(rp)}>{rp.data.title}</a>
+                    </div>
+                    <div class="post-row__desc">{rp.data.description}</div>
+                  </div>
+                  <div class="post-row__badges">
+                    <span class="badge">{rp.data.category}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+      </footer>
+    </article>
+
+    <!-- Sidebar -->
+    <aside class="article-sidebar" aria-label="Article sidebar">
+      {toc.length > 2 && data.toc && (
+        <nav class="toc" aria-label="Table of contents">
+          <div class="toc__title">Contents</div>
+          <ol class="toc__list">
+            {toc.map((item) => (
+              <li class={`toc__item toc__item--h${item.depth}`}>
+                <a href={`#${item.slug}`}>{item.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+    </aside>
+  </div>
+</BaseLayout>
+
+<script>
+  // Copy URL button
+  const copyBtn = document.getElementById('copy-url-btn') as HTMLButtonElement | null;
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const url = copyBtn.dataset.url || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy Link'; }, 2000);
+      } catch {
+        copyBtn.textContent = 'Copy Link';
+      }
+    });
+  }
+
+  // Reading time + word count (client-side for accuracy on MDX rendered content)
+  const articleBody = document.querySelector('.prose');
+  if (articleBody) {
+    const text = articleBody.textContent || '';
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    const rtEl = document.getElementById('reading-time-placeholder');
+    if (rtEl) rtEl.textContent = `${minutes} min read`;
+    const wcEl = document.getElementById('word-count-placeholder');
+    if (wcEl) wcEl.textContent = `${words.toLocaleString()} words`;
+  }
+
+  // TOC active highlight on scroll
+  const tocLinks = document.querySelectorAll('.toc a');
+  if (tocLinks.length > 0) {
+    const headings = document.querySelectorAll('.prose h2, .prose h3, .prose h4');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            tocLinks.forEach((link) => {
+              link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+            });
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -60% 0px' }
+    );
+    headings.forEach((h) => observer.observe(h));
+  }
+
+  // Code copy buttons
+  document.querySelectorAll('.code-copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const block = btn.closest('.code-block');
+      if (!block) return;
+      const code = block.querySelector('code');
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code.textContent || '');
+        btn.textContent = 'COPIED';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch { /* silent */ }
+    });
+  });
+</script>

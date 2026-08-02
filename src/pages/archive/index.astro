@@ -1,0 +1,68 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getAllPosts, getArchiveByYear, getPostUrl, formatDate, MONTH_NAMES } from '@/utils/posts';
+
+const allPosts = await getAllPosts();
+const archive = getArchiveByYear(allPosts);
+const years = [...archive.keys()].sort((a, b) => b - a);
+---
+
+<BaseLayout
+  title="Archive"
+  description={`Complete archive of ${allPosts.length} articles organized by date`}
+>
+  <div class="page-header">
+    <div class="page-header__label">Publication Archive</div>
+    <h1 class="page-header__title">Archive</h1>
+    <p class="page-header__desc">{allPosts.length} articles published</p>
+  </div>
+
+  {years.map((year) => {
+    const yearData = archive.get(year)!;
+    const months = [...yearData.keys()].sort((a, b) => b - a);
+    const yearCount = months.reduce((sum, m) => sum + yearData.get(m)!.length, 0);
+
+    return (
+      <section class="archive-year" id={`year-${year}`}>
+        <h2 class="archive-year__heading">
+          {year}
+          <span style="font-size: var(--text-sm); font-weight: 400; color: var(--fg-subtle); margin-left: var(--space-4); font-family: var(--font-mono);">
+            {yearCount} article{yearCount !== 1 ? 's' : ''}
+          </span>
+        </h2>
+
+        {months.map((month) => {
+          const monthPosts = yearData.get(month)!;
+          return (
+            <section class="archive-month" id={`${year}-${String(month).padStart(2, '0')}`}>
+              <h3 class="archive-month__heading">
+                {MONTH_NAMES[month - 1]} {year} — {monthPosts.length} article{monthPosts.length !== 1 ? 's' : ''}
+              </h3>
+              <ul class="post-list">
+                {monthPosts.map((post) => (
+                  <li class="post-row">
+                    <time class="post-row__date" datetime={post.data.date.toISOString()}>
+                      {formatDate(post.data.date, 'short')}
+                    </time>
+                    <div class="post-row__main">
+                      <div class="post-row__title">
+                        <a href={getPostUrl(post)}>{post.data.title}</a>
+                      </div>
+                      <div class="post-row__meta">
+                        <span>{post.data.category}</span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </section>
+    );
+  })}
+
+  {allPosts.length === 0 && (
+    <p style="color: var(--fg-muted); font-family: var(--font-mono);">No articles published yet.</p>
+  )}
+</BaseLayout>
