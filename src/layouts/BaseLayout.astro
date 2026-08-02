@@ -41,10 +41,14 @@ const ogImageURL = ogImage
   : new URL(SITE.defaultOGImage, SITE.siteURL).toString();
 
 const currentPath = Astro.url.pathname;
+
+const lastUpdated = new Date().toLocaleDateString('en-GB', {
+  day: '2-digit', month: 'short', year: 'numeric'
+}).toUpperCase();
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -56,7 +60,6 @@ const currentPath = Astro.url.pathname;
     {!noindex && <meta name="robots" content="index, follow" />}
     <link rel="canonical" href={canonicalURL} />
 
-    <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
@@ -67,98 +70,186 @@ const currentPath = Astro.url.pathname;
     {updatedDate && <meta property="article:modified_time" content={updatedDate.toISOString()} />}
     {author && <meta property="article:author" content={author} />}
 
-    <!-- Twitter/X Card -->
     <meta name="twitter:card" content={SITE.seo.twitterCard} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageURL} />
     {SITE.seo.twitterSite && <meta name="twitter:site" content={SITE.seo.twitterSite} />}
 
-    <!-- RSS -->
     <link rel="alternate" type="application/rss+xml" title={SITE.rss.title} href="/rss.xml" />
-
-    <!-- Favicon -->
     <link rel="icon" href={SITE.favicon} />
 
-    <!-- Schema.org structured data -->
-    {schema && (
-      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-    )}
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
 
-    <!-- Analytics (optional, disabled by default) -->
     {SITE.analytics.enabled && SITE.analytics.provider === 'plausible' && (
       <script defer data-domain={SITE.analytics.dataId} src={SITE.analytics.scriptSrc} />
     )}
     {SITE.analytics.enabled && SITE.analytics.provider === 'umami' && (
       <script defer data-website-id={SITE.analytics.dataId} src={SITE.analytics.scriptSrc} />
     )}
+
+    <!-- Theme: prevent flash -->
+    <script is:inline>
+      (function(){
+        var saved = localStorage.getItem('blog-theme');
+        var pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', saved || pref);
+      })();
+    </script>
   </head>
   <body>
-    <a href="#main-content" class="skip-link">Skip to content</a>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <header class="site-header" role="banner">
-      <div class="site-header__inner">
-        <a href="/" class="site-logo">{SITE.siteName}</a>
+    <!-- ── UTILITY BAR ── -->
+    <div class="util-bar" role="banner">
+      <div class="util-bar__inner">
+        <div class="util-bar__left">
+          <span class="util-bar__last-updated">LAST UPDATED: {lastUpdated}</span>
+          <span class="util-bar__sep">|</span>
+          <a href="/rss.xml">RSS FEED</a>
+          <span class="util-bar__sep">|</span>
+          <a href="/archive/">ARCHIVE</a>
+          <span class="util-bar__sep">|</span>
+          <a href="/about/">ABOUT</a>
+        </div>
+        <div class="util-bar__right">
+          <div class="theme-toggle" role="group" aria-label="Select colour theme">
+            <button
+              class="theme-btn"
+              id="theme-light"
+              aria-pressed="false"
+              aria-label="Light theme"
+              data-theme-val="light"
+            >☀ LIGHT</button>
+            <button
+              class="theme-btn"
+              id="theme-dark"
+              aria-pressed="false"
+              aria-label="Dark theme"
+              data-theme-val="dark"
+            >☾ DARK</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+    <!-- ── MASTHEAD ── -->
+    <div class="masthead">
+      <div class="masthead__inner">
+        <div class="masthead__brand">
+          <a href="/" class="masthead__logo">{SITE.siteName}</a>
+          <div class="masthead__tagline">
+            SECURITY RESEARCH · AI ENGINEERING · TECHNICAL PUBLICATION
+          </div>
+        </div>
+        <div class="masthead__meta">
+          <span>{SITE.author}</span>
+          <span>{SITE.authorRole}</span>
+          {SITE.social.github && (
+            <a href={SITE.social.github} target="_blank" rel="noopener noreferrer">GITHUB</a>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NAVIGATION STRIP ── -->
+    <nav class="site-nav-strip" aria-label="Main navigation">
+      <div class="site-nav-strip__inner">
+        <div class="site-nav-strip__links" id="site-nav">
           {SITE.navigation.map((item) => (
             <a
               href={item.href}
-              aria-current={currentPath === item.href || currentPath.startsWith(item.href === '/' ? '/_never_' : item.href) ? 'page' : undefined}
+              aria-current={
+                item.href === '/'
+                  ? currentPath === '/' ? 'page' : undefined
+                  : currentPath.startsWith(item.href) ? 'page' : undefined
+              }
             >
               {item.label}
             </a>
           ))}
-        </nav>
-
+        </div>
         <button
-          class="nav-toggle"
-          id="nav-toggle"
+          class="nav-mob-toggle"
+          id="nav-mob-toggle"
           aria-controls="site-nav"
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
-          MENU
+          ☰ MENU
         </button>
       </div>
-    </header>
+    </nav>
 
+    <!-- ── MAIN ── -->
     <main id="main-content" class="site-main">
-      <slot />
+      <div class="page-body">
+        <slot />
+      </div>
     </main>
 
+    <!-- ── FOOTER ── -->
     <footer class="site-footer" role="contentinfo">
       <div class="site-footer__inner">
-        <div class="footer-brand">
-          <a href="/" class="footer-brand__name">{SITE.siteName}</a>
-          <p class="footer-brand__desc">{SITE.author} — {SITE.authorRole}</p>
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="/" class="footer-brand__name">{SITE.siteName}</a>
+            <div class="footer-brand__desc">
+              {SITE.author} · {SITE.authorRole}
+            </div>
+          </div>
+          <nav class="footer-nav" aria-label="Footer navigation">
+            <a href="/latest/">Latest</a>
+            <a href="/archive/">Archive</a>
+            <a href="/categories/">Categories</a>
+            <a href="/tags/">Tags</a>
+            <a href="/hashtags/">Hashtags</a>
+            <a href="/rss.xml">RSS</a>
+            <a href="/feed.json">JSON Feed</a>
+            <a href="/about/">About</a>
+            {SITE.social.github && (
+              <a href={SITE.social.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+            )}
+          </nav>
         </div>
-
-        <nav class="footer-links" aria-label="Footer navigation">
-          <a href="/latest/">Latest</a>
-          <a href="/archive/">Archive</a>
-          <a href="/categories/">Categories</a>
-          <a href="/tags/">Tags</a>
-          <a href="/about/">About</a>
-          <a href="/rss.xml">RSS</a>
-          {SITE.social.github && <a href={SITE.social.github} rel="noopener noreferrer" target="_blank">GitHub</a>}
-        </nav>
-
-        <div class="footer-copy">
+        <div class="footer-bottom">
           &copy; {new Date().getFullYear()} {SITE.author}. Published with BLOG-CMS.
+          &nbsp;·&nbsp; <a href="/rss.xml" style="color:inherit;">RSS</a>
+          &nbsp;·&nbsp; <a href="/sitemap-index.xml" style="color:inherit;">Sitemap</a>
         </div>
       </div>
     </footer>
 
     <script>
-      // Mobile nav toggle
-      const toggle = document.getElementById('nav-toggle');
+      // ── Theme toggle ──
+      function applyTheme(t: string) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('blog-theme', t);
+        (document.getElementById('theme-light') as HTMLButtonElement)?.setAttribute('aria-pressed', String(t === 'light'));
+        (document.getElementById('theme-dark') as HTMLButtonElement)?.setAttribute('aria-pressed', String(t === 'dark'));
+        document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(btn => {
+          btn.classList.toggle('is-active', btn.dataset.themeVal === t);
+        });
+      }
+
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(current);
+
+      document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.themeVal;
+          if (val) applyTheme(val);
+        });
+      });
+
+      // ── Mobile nav ──
+      const mobToggle = document.getElementById('nav-mob-toggle');
       const nav = document.getElementById('site-nav');
-      if (toggle && nav) {
-        toggle.addEventListener('click', () => {
-          const isOpen = nav.classList.toggle('is-open');
-          toggle.setAttribute('aria-expanded', String(isOpen));
-          toggle.textContent = isOpen ? 'CLOSE' : 'MENU';
+      if (mobToggle && nav) {
+        mobToggle.addEventListener('click', () => {
+          const open = nav.classList.toggle('is-open');
+          mobToggle.setAttribute('aria-expanded', String(open));
+          mobToggle.textContent = open ? '✕ CLOSE' : '☰ MENU';
         });
       }
     </script>

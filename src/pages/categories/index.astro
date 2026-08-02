@@ -7,18 +7,38 @@ const categories = getCategories(allPosts);
 ---
 
 <BaseLayout title="Categories" description="Browse all article categories">
-  <div class="page-header">
-    <div class="page-header__label">Taxonomy</div>
-    <h1 class="page-header__title">Categories</h1>
-    <p class="page-header__desc">{categories.length} categories across {allPosts.length} articles</p>
+  <div class="page-hdr">
+    <div class="page-hdr__label">Taxonomy / Index</div>
+    <h1 class="page-hdr__title">Categories</h1>
+    <div class="page-hdr__desc">{categories.length} categories · {allPosts.length} articles</div>
   </div>
 
-  <div class="taxonomy-grid">
-    {categories.map((cat) => (
-      <a href={`/category/${cat.slug}/`} class="taxonomy-card">
-        <span class="taxonomy-card__name">{cat.name}</span>
-        <span class="taxonomy-card__count">{cat.count} article{cat.count !== 1 ? 's' : ''}</span>
-      </a>
-    ))}
+  <div class="section-block">
+    <div class="section-bar">
+      <span class="section-bar__num">01</span>
+      <span class="section-bar__title">Category Directory</span>
+    </div>
+    <table class="dir-table">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Category</th>
+          <th style="text-align:right;">Articles</th>
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map((cat, i) => (
+          <tr>
+            <td style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-subtle);width:48px;">
+              {String(i+1).padStart(3,'0')}
+            </td>
+            <td class="dir-table__name">
+              <a href={`/category/${cat.slug}/`}>{cat.name}</a>
+            </td>
+            <td class="dir-table__count">{cat.count}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 </BaseLayout>

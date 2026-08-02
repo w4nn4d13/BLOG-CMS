@@ -2,13 +2,13 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { getAllPosts, getPostUrl, formatDate } from '@/utils/posts';
-import { slugify } from '@/utils/slugify';
+import { slugify, normalizeHashtag } from '@/utils/slugify';
 import { SITE } from '@/config/site';
 
 export async function getStaticPaths() {
   const allPosts = await getAllPosts();
-  const authorNames = [...new Set(allPosts.map((p) => p.data.author))];
-  return authorNames.map((name) => ({
+  const names = [...new Set(allPosts.map(p => p.data.author))];
+  return names.map(name => ({
     params: { slug: slugify(name) },
     props: { authorName: name },
   }));
@@ -16,65 +16,61 @@ export async function getStaticPaths() {
 
 const { authorName } = Astro.props;
 const allPosts = await getAllPosts();
-const posts = allPosts.filter((p) => p.data.author === authorName);
+const posts = allPosts.filter(p => p.data.author === authorName);
 
-// Try loading from author collection
 let authorData: { name: string; role: string; bio: string } | null = null;
 try {
   const authors = await getCollection('authors');
-  const found = authors.find((a) => slugify(a.data.name) === Astro.params.slug);
+  const found = authors.find(a => slugify(a.data.name) === Astro.params.slug);
   if (found) authorData = found.data;
-} catch { /* no author collection entry */ }
+} catch { /* no entry */ }
 
 const role = authorData?.role || SITE.authorRole;
-const bio = authorData?.bio || SITE.authorBio;
+const bio  = authorData?.bio  || SITE.authorBio;
 ---
 
-<BaseLayout
-  title={`Author: ${authorName}`}
-  description={`${posts.length} articles by ${authorName}`}
->
+<BaseLayout title={`Author: ${authorName}`} description={`${posts.length} articles by ${authorName}`}>
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <span class="breadcrumb__item"><a href="/">Home</a></span>
     <span class="breadcrumb__item"><span class="breadcrumb__current">{authorName}</span></span>
   </nav>
 
-  <div style="margin-bottom: var(--space-8);">
-    <div class="author-box" style="margin-bottom: var(--space-6);">
-      <div class="author-box__avatar" aria-hidden="true">
-        {authorName.charAt(0).toUpperCase()}
-      </div>
-      <div>
-        <div class="author-box__name">{authorName}</div>
-        <div class="author-box__role">{role}</div>
-        <div class="author-box__bio">{bio}</div>
-      </div>
+  <div class="author-box" style="margin-bottom:var(--sp-8);max-width:700px;" itemscope itemtype="https://schema.org/Person">
+    <div class="author-box__avatar" aria-hidden="true">
+      {authorName.charAt(0).toUpperCase()}
+    </div>
+    <div>
+      <div class="author-box__name" itemprop="name">{authorName}</div>
+      <div class="author-box__role">{role}</div>
+      <div class="author-box__bio">{bio}</div>
     </div>
   </div>
 
-  <div class="section-head">
-    <span class="section-head__title">Publications</span>
-    <span style="font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-subtle);">
-      {posts.length} article{posts.length !== 1 ? 's' : ''}
-    </span>
-  </div>
-
-  <ul class="post-list">
-    {posts.map((post) => (
-      <li class="post-row">
-        <time class="post-row__date" datetime={post.data.date.toISOString()}>
-          {formatDate(post.data.date, 'short')}
-        </time>
-        <div class="post-row__main">
-          <div class="post-row__title">
-            <a href={getPostUrl(post)}>{post.data.title}</a>
+  <div class="section-block">
+    <div class="section-bar">
+      <span class="section-bar__num">01</span>
+      <span class="section-bar__title">Publications by {authorName}</span>
+      <span class="section-bar__more" style="pointer-events:none;">{posts.length} ARTICLES</span>
+    </div>
+    <ul class="pub-list">
+      {posts.map((post, i) => (
+        <li class="pub-row">
+          <span class="pub-row__num">{String(i+1).padStart(3,'0')}</span>
+          <time class="pub-row__date" datetime={post.data.date.toISOString()}>
+            {formatDate(post.data.date,'short')}
+          </time>
+          <a href={`/category/${slugify(post.data.category)}/`} class="pub-row__cat">
+            {post.data.category}
+          </a>
+          <div class="pub-row__main">
+            <div class="pub-row__title"><a href={getPostUrl(post)}>{post.data.title}</a></div>
+            <div class="pub-row__desc">{post.data.description}</div>
           </div>
-          <div class="post-row__desc">{post.data.description}</div>
-        </div>
-        <div class="post-row__badges">
-          {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
-        </div>
-      </li>
-    ))}
-  </ul>
+          <div class="pub-row__badges">
+            {post.data.featured && <span class="badge badge--fill">FEATURED</span>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
 </BaseLayout>
