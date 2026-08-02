@@ -47,7 +47,7 @@
 
   --width-content:  72ch;
   --width-wide:     90ch;
-  --width-site:     1200px;
+  --width-site:     min(1600px, 96vw);
 
   --radius-none:  0;
   --transition:   150ms ease;
