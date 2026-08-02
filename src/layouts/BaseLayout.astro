@@ -44,7 +44,7 @@ const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -93,14 +93,6 @@ const currentPath = Astro.url.pathname;
       <script defer data-website-id={SITE.analytics.dataId} src={SITE.analytics.scriptSrc} />
     )}
 
-    <!-- Prevent flash: apply saved/preferred theme before paint -->
-    <script is:inline>
-      (function () {
-        var saved = localStorage.getItem('blog-theme');
-        var pref = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', saved || pref);
-      })();
-    </script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
@@ -119,11 +111,6 @@ const currentPath = Astro.url.pathname;
             </a>
           ))}
 
-          <!-- Theme toggle sits at the right edge of the nav -->
-          <div class="theme-toggle" role="group" aria-label="Colour theme">
-            <button class="theme-btn" data-theme-val="light" aria-label="Light theme">☀</button>
-            <button class="theme-btn" data-theme-val="dark"  aria-label="Dark theme">☾</button>
-          </div>
         </nav>
 
         <button
@@ -166,26 +153,7 @@ const currentPath = Astro.url.pathname;
     </footer>
 
     <script>
-      // ── Theme toggle ──
-      function applyTheme(t: string) {
-        document.documentElement.setAttribute('data-theme', t);
-        localStorage.setItem('blog-theme', t);
-        document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(btn => {
-          btn.classList.toggle('is-active', btn.dataset.themeVal === t);
-        });
-      }
-
-      // Sync button state on load
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      applyTheme(current);
-
-      document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (btn.dataset.themeVal) applyTheme(btn.dataset.themeVal);
-        });
-      });
-
-      // ── Mobile nav toggle ──
+      // Mobile nav toggle
       const toggle = document.getElementById('nav-toggle');
       const nav = document.getElementById('site-nav');
       if (toggle && nav) {
