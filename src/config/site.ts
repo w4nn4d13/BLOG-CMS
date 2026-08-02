@@ -19,8 +19,6 @@ export const SITE = {
     { label: 'HOME', href: '/' },
     { label: 'LATEST', href: '/latest/' },
     { label: 'CATEGORIES', href: '/categories/' },
-    { label: 'TAGS', href: '/tags/' },
-    { label: 'HASHTAGS', href: '/hashtags/' },
     { label: 'ARCHIVE', href: '/archive/' },
     { label: 'ABOUT', href: '/about/' },
     { label: 'SEARCH', href: '/search/' },
