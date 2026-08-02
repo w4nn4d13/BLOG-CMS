@@ -2,7 +2,7 @@
 title: "API Security Research: Authentication Bypass Patterns — Part 1"
 description: "First part of a demo series on API security research patterns. This demonstrates series navigation, multiple tags, and hashtags. Not real research."
 date: 2026-07-28
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Security Research"
 tags:
   - api-security

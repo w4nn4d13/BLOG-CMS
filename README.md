@@ -144,7 +144,7 @@ Add frontmatter and content:
 title: "My Article"
 description: "Short description."
 date: 2026-08-03
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Security Research"
 tags:
   - web-security
@@ -361,7 +361,7 @@ Author data lives in `src/content/authors/<slug>.json`:
 
 ```json
 {
-  "name": "Stalin S.",
+  "name": "w4nn4d13",
   "role": "Security Researcher · AI Engineer",
   "bio": "...",
   "social": {
@@ -370,7 +370,7 @@ Author data lives in `src/content/authors/<slug>.json`:
 }
 ```
 
-Author archive pages at `/author/stalin-s/` are generated automatically from the posts that reference the author name.
+Author archive pages at `/author/w4nn4d13/` are generated automatically from the posts that reference the author name.
 
 ---
 
@@ -490,7 +490,7 @@ The site deploys to `https://<username>.github.io/<repo>/` by default.
 For a custom domain, add a `CNAME` file to `public/` with your domain:
 
 ```
-blog.stalin.engineer
+blog.w4nn4d13.dev
 ```
 
 Then configure your DNS and set the custom domain in GitHub Pages settings.

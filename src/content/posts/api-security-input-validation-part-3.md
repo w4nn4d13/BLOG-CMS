@@ -2,7 +2,7 @@
 title: "API Security Research: Input Validation and Injection — Part 3"
 description: "Third part of the demo API security series. Covers input validation research methodology and injection pattern identification. Fictional demo content."
 date: 2026-07-30
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Security Research"
 tags:
   - api-security

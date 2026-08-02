@@ -2,7 +2,7 @@
 title: "API Security Research: Authorization and Access Control — Part 2"
 description: "Second part of the demo API security series. Demonstrates series navigation, IDOR patterns, and access control research methodology. Fictional demo content."
 date: 2026-07-29
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Security Research"
 tags:
   - api-security

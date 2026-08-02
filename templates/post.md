@@ -15,7 +15,7 @@ date: 2026-08-03
 # updated: 2026-08-03
 
 # OPTIONAL — author name (must match an entry in src/content/authors/)
-author: "Stalin S."
+author: "w4nn4d13"
 
 # OPTIONAL — category for this article (creates /category/<slug>/ automatically)
 category: "Security Research"

@@ -8,7 +8,7 @@ const posts = defineCollection({
     description: z.string().min(1, 'Description is required').max(300, 'Description too long'),
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
-    author: z.string().default('Stalin S.'),
+    author: z.string().default('w4nn4d13'),
     category: z.string().default('Uncategorized'),
     tags: z.array(z.string()).default([]),
     hashtags: z.array(z.string()).default([]),

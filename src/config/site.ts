@@ -1,10 +1,10 @@
 export const SITE = {
   siteName: 'BLOG-CMS',
-  siteDescription: 'Security research, AI engineering, and technical writing by Stalin S.',
-  siteURL: 'https://blog.stalin.engineer',
-  author: 'Stalin S.',
+  siteDescription: 'Security research, AI engineering, and technical writing by w4nn4d13.',
+  siteURL: 'https://blog.w4nn4d13.dev',
+  author: 'w4nn4d13',
   authorRole: 'Security Researcher · AI Engineer',
-  authorBio: 'Security researcher and AI engineer writing about vulnerability research, web security, agentic AI systems, and technical computing.',
+  authorBio: 'Security researcher and AI engineer. Writing about vulnerability research, web security, agentic AI systems, and technical computing.',
   locale: 'en-US',
   timezone: 'UTC',
 
@@ -34,7 +34,7 @@ export const SITE = {
   },
 
   rss: {
-    title: 'BLOG-CMS — Stalin S.',
+    title: 'BLOG-CMS — w4nn4d13',
     description: 'Security research, AI engineering, and technical writing.',
     feedItems: 20,
   },

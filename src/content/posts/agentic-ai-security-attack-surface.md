@@ -2,7 +2,7 @@
 title: "Agentic AI Security: Attack Surface Overview"
 description: "A high-level overview of the security attack surface introduced by agentic AI systems. Demo post covering AI security concepts, prompt injection, and tool abuse patterns."
 date: 2026-07-25
-author: "Stalin S."
+author: "w4nn4d13"
 category: "AI Security"
 tags:
   - ai-security

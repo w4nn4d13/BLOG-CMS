@@ -3,7 +3,7 @@ title: "Welcome to BLOG-CMS: A Git-Based Publishing Platform"
 description: "An introduction to the BLOG-CMS static publishing platform — built on Astro, GitHub, and Markdown. Write, commit, push, and go live."
 date: 2026-08-01
 updated: 2026-08-01
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Meta"
 tags:
   - blog-cms
@@ -61,7 +61,7 @@ Add frontmatter and content:
 title: "My New Article"
 description: "Short description."
 date: 2026-08-03
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Security Research"
 tags:
   - web-security

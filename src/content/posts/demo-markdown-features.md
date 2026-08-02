@@ -2,7 +2,7 @@
 title: "Markdown Feature Demonstration"
 description: "A comprehensive demonstration of all supported Markdown features: headings, code blocks, tables, lists, blockquotes, task lists, footnotes, and more."
 date: 2026-08-02
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Documentation"
 tags:
   - markdown
@@ -114,7 +114,7 @@ cat > "$FILE" <<EOF
 title: "${TITLE}"
 description: ""
 date: ${DATE}
-author: "Stalin S."
+author: "w4nn4d13"
 category: "Uncategorized"
 draft: true
 ---

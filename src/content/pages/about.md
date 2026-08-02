@@ -10,7 +10,7 @@ This is a technical research publication covering security research, AI engineer
 
 ## Author
 
-**Stalin S.** is a security researcher and AI engineer. Research interests include:
+**w4nn4d13** is a security researcher and AI engineer. Research interests include:
 
 - Web application security and vulnerability research
 - Agentic AI systems and AI security
