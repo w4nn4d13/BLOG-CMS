@@ -14,27 +14,24 @@ interface Props {
 const { post, headings } = Astro.props;
 const { data } = post;
 
-const allPosts    = await getAllPosts();
-const postIndex   = allPosts.findIndex(p => p.id === post.id);
-const prevPost    = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
-const nextPost    = postIndex > 0 ? allPosts[postIndex - 1] : null;
-const related     = getRelatedPosts(post, allPosts);
-const toc         = buildToc(headings);
+const allPosts = await getAllPosts();
+const postIndex = allPosts.findIndex((p) => p.id === post.id);
+const prevPost = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
+const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
+const relatedPosts = getRelatedPosts(post, allPosts);
+const toc = buildToc(headings);
 
 const postUrl = new URL(getPostUrl(post), SITE.siteURL).toString();
 
-// Series siblings
+// Series sibling posts
 let seriesPosts: Post[] = [];
 if (data.series) {
   seriesPosts = allPosts
-    .filter(p => p.data.series === data.series)
-    .sort((a,b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+    .filter((p) => p.data.series === data.series)
+    .sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
 }
 
-// TOC numbering
-let tocCounter = 0;
-function tocNum() { return `${String(++tocCounter).padStart(2,'0')} —`; }
-
+// Schema.org
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -48,7 +45,11 @@ const schema = {
     name: data.author,
     url: new URL(`/author/${slugify(data.author)}/`, SITE.siteURL).toString(),
   },
-  publisher: { '@type': 'Organization', name: SITE.siteName, url: SITE.siteURL },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.siteName,
+    url: SITE.siteURL,
+  },
   mainEntityOfPage: postUrl,
   ...(data.cover ? { image: new URL(data.cover, SITE.siteURL).toString() } : {}),
 };
@@ -69,7 +70,7 @@ const schema = {
   <!-- Breadcrumb -->
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <span class="breadcrumb__item"><a href="/">Home</a></span>
-    <span class="breadcrumb__item"><a href="/latest/">Publications</a></span>
+    <span class="breadcrumb__item"><a href="/latest/">Latest</a></span>
     <span class="breadcrumb__item">
       <a href={`/category/${slugify(data.category)}/`}>{data.category}</a>
     </span>
@@ -78,120 +79,62 @@ const schema = {
     </span>
   </nav>
 
-  <div class="doc-layout">
+  <div class="article-layout">
+    <!-- Main content -->
+    <article class="article-content" itemscope itemtype="https://schema.org/BlogPosting">
+      <header class="article-header">
+        {data.cover && (
+          <img
+            src={data.cover}
+            alt={`Cover image for ${data.title}`}
+            class="article-cover"
+            loading="eager"
+          />
+        )}
 
-    <!-- ═══ ARTICLE MAIN ═══ -->
-    <article class="doc-main" itemscope itemtype="https://schema.org/BlogPosting">
-
-      <!-- Cover image -->
-      {data.cover && (
-        <img src={data.cover} alt={`Cover — ${data.title}`} class="cover-img" loading="eager" />
-      )}
-
-      <!-- Document header -->
-      <header class="doc-header">
-        <a href={`/category/${slugify(data.category)}/`} class="doc-header__cat">
+        <a href={`/category/${slugify(data.category)}/`} class="article-header__category">
           {data.category}
         </a>
-        <h1 class="doc-header__title" itemprop="headline">{data.title}</h1>
-        <p class="doc-header__desc" itemprop="description">{data.description}</p>
+
+        <h1 class="article-header__title" itemprop="headline">{data.title}</h1>
+
+        <p class="article-header__desc" itemprop="description">{data.description}</p>
+
+        <div class="article-header__meta">
+          <time datetime={data.date.toISOString()} itemprop="datePublished">
+            {formatDate(data.date)}
+          </time>
+          {data.updated && data.updated.getTime() !== data.date.getTime() && (
+            <span>
+              Updated: <time datetime={data.updated.toISOString()} itemprop="dateModified">
+                {formatDate(data.updated)}
+              </time>
+            </span>
+          )}
+          <a href={`/author/${slugify(data.author)}/`} itemprop="author">
+            {data.author}
+          </a>
+          <span id="reading-time-placeholder" data-content-id={post.id}></span>
+          <span id="word-count-placeholder" data-content-id={post.id}></span>
+        </div>
       </header>
 
-      <!-- Document info table -->
-      <table class="doc-info" aria-label="Document information">
-        <caption>DOCUMENT INFORMATION</caption>
-        <tbody>
-          <tr>
-            <th scope="row">Publication</th>
-            <td>{SITE.siteName}</td>
-          </tr>
-          <tr>
-            <th scope="row">Author</th>
-            <td>
-              <a href={`/author/${slugify(data.author)}/`} itemprop="author">{data.author}</a>
-            </td>
-          </tr>
-          <tr>
-            <th scope="row">Published</th>
-            <td>
-              <time datetime={data.date.toISOString()} itemprop="datePublished">
-                {formatDate(data.date, 'short').toUpperCase()}
-              </time>
-            </td>
-          </tr>
-          {data.updated && data.updated.getTime() !== data.date.getTime() && (
-            <tr>
-              <th scope="row">Updated</th>
-              <td>
-                <time datetime={data.updated.toISOString()} itemprop="dateModified">
-                  {formatDate(data.updated, 'short').toUpperCase()}
-                </time>
-              </td>
-            </tr>
-          )}
-          <tr>
-            <th scope="row">Category</th>
-            <td>
-              <a href={`/category/${slugify(data.category)}/`}>{data.category}</a>
-            </td>
-          </tr>
-          <tr>
-            <th scope="row">Reading Time</th>
-            <td><span id="reading-time">—</span></td>
-          </tr>
-          {data.tags.length > 0 && (
-            <tr>
-              <th scope="row">Tags</th>
-              <td>
-                <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                  {data.tags.map(t => (
-                    <a href={`/tag/${slugify(t)}/`} class="badge">{t}</a>
-                  ))}
-                </div>
-              </td>
-            </tr>
-          )}
-          {data.hashtags.length > 0 && (
-            <tr>
-              <th scope="row">Hashtags</th>
-              <td>
-                <span style="display:flex;flex-wrap:wrap;gap:8px;font-family:var(--font-mono);font-size:var(--text-xs);">
-                  {data.hashtags.map(ht => (
-                    <a href={`/hashtag/${normalizeHashtag(ht)}/`} class="htag">
-                      {displayHashtag(ht)}
-                    </a>
-                  ))}
-                </span>
-              </td>
-            </tr>
-          )}
-          {data.series && (
-            <tr>
-              <th scope="row">Series</th>
-              <td>
-                <a href={`/series/${slugify(data.series)}/`}>{data.series}</a>
-                {data.seriesOrder != null && ` — Part ${data.seriesOrder}`}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      <!-- Series navigation box -->
+      <!-- Series box -->
       {seriesPosts.length > 1 && (
-        <div class="series-box" role="navigation" aria-label="Series navigation">
-          <div class="series-box__head">SERIES</div>
+        <div class="series-box" role="navigation" aria-label="Article series">
+          <div class="series-box__label">Series</div>
           <div class="series-box__name">{data.series}</div>
           <ol class="series-list">
-            {seriesPosts.map(sp => {
-              const isCur = sp.id === post.id;
+            {seriesPosts.map((sp) => {
+              const isCurrent = sp.id === post.id;
               return (
-                <li class={`series-list__item${isCur ? ' series-list__item--cur' : ''}`}>
+                <li class={`series-list__item${isCurrent ? ' series-list__item--current' : ''}`}>
                   <span class="series-list__num">{sp.data.seriesOrder ?? '?'}.</span>
-                  {isCur
-                    ? <span aria-current="page">{sp.data.title}</span>
-                    : <a href={getPostUrl(sp)}>{sp.data.title}</a>
-                  }
+                  {isCurrent ? (
+                    <span aria-current="page">{sp.data.title}</span>
+                  ) : (
+                    <a href={getPostUrl(sp)}>{sp.data.title}</a>
+                  )}
                 </li>
               );
             })}
@@ -208,18 +151,18 @@ const schema = {
       <footer class="article-footer">
         <!-- Tags -->
         {data.tags.length > 0 && (
-          <div class="article-tags">
-            {data.tags.map(t => (
-              <a href={`/tag/${slugify(t)}/`} class="badge">{t}</a>
+          <div class="article-tags" role="list" aria-label="Tags">
+            {data.tags.map((tag) => (
+              <a href={`/tag/${slugify(tag)}/`} class="badge" role="listitem">{tag}</a>
             ))}
           </div>
         )}
 
         <!-- Hashtags -->
         {data.hashtags.length > 0 && (
-          <div class="article-hashtags">
-            {data.hashtags.map(ht => (
-              <a href={`/hashtag/${normalizeHashtag(ht)}/`} class="htag">
+          <div class="article-hashtags" role="list" aria-label="Hashtags">
+            {data.hashtags.map((ht) => (
+              <a href={`/hashtag/${normalizeHashtag(ht)}/`} class="hashtag" role="listitem">
                 {displayHashtag(ht)}
               </a>
             ))}
@@ -227,23 +170,31 @@ const schema = {
         )}
 
         <!-- Share -->
-        <div class="share-row">
+        <div class="share-links" style="margin-bottom: 1.5rem;">
           <button class="copy-link-btn" id="copy-url-btn" data-url={postUrl}>
-            COPY LINK
+            Copy Link
           </button>
-          <a
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
-            target="_blank" rel="noopener noreferrer" class="share-link"
-          >LINKEDIN</a>
-          {SITE.seo.twitterSite && (
+          {SITE.social.twitter && (
             <a
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(data.title)}&url=${encodeURIComponent(postUrl)}`}
-              target="_blank" rel="noopener noreferrer" class="share-link"
-            >SHARE ON X</a>
+              target="_blank"
+              rel="noopener noreferrer"
+              class="share-link"
+            >
+              Share on X
+            </a>
           )}
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="share-link"
+          >
+            LinkedIn
+          </a>
         </div>
 
-        <!-- Author -->
+        <!-- Author box -->
         <div class="author-box" itemscope itemtype="https://schema.org/Person">
           <div class="author-box__avatar" aria-hidden="true">
             {data.author.charAt(0).toUpperCase()}
@@ -255,154 +206,140 @@ const schema = {
           </div>
         </div>
 
-        <!-- Prev / Next -->
+        <!-- Prev/Next navigation -->
         <nav class="post-nav" aria-label="Article navigation">
-          <div class="post-nav__item post-nav__item--prev">
+          <div class="post-nav__item">
             {prevPost && (
-              <a href={getPostUrl(prevPost)}>
-                <div class="post-nav__label">← PREVIOUS PUBLICATION</div>
-                <div class="post-nav__title">{prevPost.data.title}</div>
-              </a>
+              <>
+                <div class="post-nav__label">← Previous</div>
+                <a href={getPostUrl(prevPost)}>
+                  <div class="post-nav__title">{prevPost.data.title}</div>
+                </a>
+              </>
             )}
           </div>
           <div class="post-nav__item post-nav__item--next">
             {nextPost && (
-              <a href={getPostUrl(nextPost)}>
-                <div class="post-nav__label">NEXT PUBLICATION →</div>
-                <div class="post-nav__title">{nextPost.data.title}</div>
-              </a>
+              <>
+                <div class="post-nav__label">Next →</div>
+                <a href={getPostUrl(nextPost)}>
+                  <div class="post-nav__title">{nextPost.data.title}</div>
+                </a>
+              </>
             )}
           </div>
         </nav>
 
-        <!-- Related -->
-        {related.length > 0 && (
-          <div class="related-posts">
-            <div class="section-bar" style="margin-bottom:0;">
-              <span class="section-bar__num">REL</span>
-              <span class="section-bar__title">Related Publications</span>
+        <!-- Related posts -->
+        {relatedPosts.length > 0 && (
+          <aside class="related-posts" aria-label="Related articles">
+            <div class="section-head">
+              <span class="section-head__title">Related Articles</span>
             </div>
-            <ul class="pub-list" style="border:1px solid var(--border);border-top:none;">
-              {related.map((rp, i) => (
-                <li class="pub-row">
-                  <span class="pub-row__num">{String(i+1).padStart(3,'0')}</span>
-                  <time class="pub-row__date" datetime={rp.data.date.toISOString()}>
-                    {formatDate(rp.data.date,'short')}
+            <ul class="post-list">
+              {relatedPosts.map((rp) => (
+                <li class="post-row">
+                  <time class="post-row__date" datetime={rp.data.date.toISOString()}>
+                    {formatDate(rp.data.date, 'short')}
                   </time>
-                  <a href={`/category/${slugify(rp.data.category)}/`} class="pub-row__cat">
-                    {rp.data.category}
-                  </a>
-                  <div class="pub-row__main">
-                    <div class="pub-row__title"><a href={getPostUrl(rp)}>{rp.data.title}</a></div>
-                    <div class="pub-row__desc">{rp.data.description}</div>
+                  <div class="post-row__main">
+                    <div class="post-row__title">
+                      <a href={getPostUrl(rp)}>{rp.data.title}</a>
+                    </div>
+                    <div class="post-row__desc">{rp.data.description}</div>
                   </div>
-                  <div class="pub-row__badges"></div>
+                  <div class="post-row__badges">
+                    <span class="badge">{rp.data.category}</span>
+                  </div>
                 </li>
               ))}
             </ul>
-          </div>
+          </aside>
         )}
       </footer>
     </article>
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <aside class="doc-sidebar" aria-label="Document sidebar">
-      <!-- TOC -->
-      {toc.length > 1 && data.toc && (
-        <nav class="doc-toc" aria-label="Table of contents">
-          <div class="doc-toc__head">CONTENTS</div>
-          <ol class="doc-toc__list">
-            {toc.map(item => (
-              <li class={`doc-toc__item doc-toc__item--h${item.depth}`}>
-                <a href={`#${item.slug}`}>
-                  {item.depth === 2 && (
-                    <span class="doc-toc__num">{item.slug}</span>
-                  )}
-                  {item.text}
-                </a>
+    <!-- Sidebar -->
+    <aside class="article-sidebar" aria-label="Article sidebar">
+      {toc.length > 2 && data.toc && (
+        <nav class="toc" aria-label="Table of contents">
+          <div class="toc__title">Contents</div>
+          <ol class="toc__list">
+            {toc.map((item) => (
+              <li class={`toc__item toc__item--h${item.depth}`}>
+                <a href={`#${item.slug}`}>{item.text}</a>
               </li>
             ))}
           </ol>
         </nav>
       )}
-
-      <!-- Document meta compact -->
-      <div class="sb-block">
-        <div class="sb-block__head">Publication Info</div>
-        <div class="sb-block__body">
-          <div style="font-family:var(--font-mono);font-size:var(--text-xs);line-height:1.8;color:var(--text-muted);">
-            <div><strong style="color:var(--text);">Date:</strong><br/>
-              <time datetime={data.date.toISOString()}>{formatDate(data.date,'short')}</time>
-            </div>
-            <div style="margin-top:4px;"><strong style="color:var(--text);">Author:</strong><br/>
-              <a href={`/author/${slugify(data.author)}/`} style="color:var(--link);">{data.author}</a>
-            </div>
-            <div style="margin-top:4px;"><strong style="color:var(--text);">Category:</strong><br/>
-              <a href={`/category/${slugify(data.category)}/`} style="color:var(--link);">{data.category}</a>
-            </div>
-            <div style="margin-top:4px;"><strong style="color:var(--text);">Read time:</strong><br/>
-              <span id="reading-time-sb">—</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
-
   </div>
 </BaseLayout>
 
 <script>
-  // Reading time
-  const body = document.querySelector('.prose');
-  if (body) {
-    const words = (body.textContent || '').trim().split(/\s+/).filter(Boolean).length;
-    const mins = Math.max(1, Math.ceil(words / 200));
-    const label = `${mins} MIN READ`;
-    const rtEl = document.getElementById('reading-time');
-    if (rtEl) rtEl.textContent = label;
-    const rtSb = document.getElementById('reading-time-sb');
-    if (rtSb) rtSb.textContent = label;
-  }
-
-  // Copy URL
+  // Copy URL button
   const copyBtn = document.getElementById('copy-url-btn') as HTMLButtonElement | null;
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
       const url = copyBtn.dataset.url || window.location.href;
       try {
         await navigator.clipboard.writeText(url);
-        copyBtn.textContent = 'COPIED!';
-        setTimeout(() => { copyBtn.textContent = 'COPY LINK'; }, 2000);
-      } catch { /* silent */ }
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy Link'; }, 2000);
+      } catch {
+        copyBtn.textContent = 'Copy Link';
+      }
     });
   }
 
-  // TOC active tracking
-  const tocLinks = document.querySelectorAll('.doc-toc a');
-  if (tocLinks.length) {
+  // Reading time + word count (client-side for accuracy on MDX rendered content)
+  const articleBody = document.querySelector('.prose');
+  if (articleBody) {
+    const text = articleBody.textContent || '';
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    const rtEl = document.getElementById('reading-time-placeholder');
+    if (rtEl) rtEl.textContent = `${minutes} min read`;
+    const wcEl = document.getElementById('word-count-placeholder');
+    if (wcEl) wcEl.textContent = `${words.toLocaleString()} words`;
+  }
+
+  // TOC active highlight on scroll
+  const tocLinks = document.querySelectorAll('.toc a');
+  if (tocLinks.length > 0) {
     const headings = document.querySelectorAll('.prose h2, .prose h3, .prose h4');
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          const id = e.target.getAttribute('id');
-          tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === `#${id}`));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            tocLinks.forEach((link) => {
+              link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+            });
+          }
         }
-      });
-    }, { rootMargin: '-80px 0px -60% 0px' });
-    headings.forEach(h => io.observe(h));
+      },
+      { rootMargin: '-80px 0px -60% 0px' }
+    );
+    headings.forEach((h) => observer.observe(h));
   }
 
   // Code copy buttons
-  document.querySelectorAll('.code-copy-btn').forEach(btn => {
+  document.querySelectorAll('.code-copy-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const block = btn.closest('.code-block');
-      const code = block?.querySelector('code');
+      if (!block) return;
+      const code = block.querySelector('code');
       if (!code) return;
       try {
         await navigator.clipboard.writeText(code.textContent || '');
         btn.textContent = 'COPIED';
         btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
+        setTimeout(() => {
+          btn.textContent = 'COPY';
+          btn.classList.remove('copied');
+        }, 2000);
       } catch { /* silent */ }
     });
   });
