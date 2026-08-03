@@ -1,5 +1,5 @@
 export const SITE = {
-  siteName: 'BLOG-CMS',
+  siteName: 'w4nn4d13',
   siteDescription: 'Security research, AI engineering, and technical writing by w4nn4d13.',
   siteURL: 'https://blog.w4nn4d13.dev',
   author: 'w4nn4d13',
@@ -32,14 +32,14 @@ export const SITE = {
   },
 
   rss: {
-    title: 'BLOG-CMS — w4nn4d13',
+    title: 'w4nn4d13',
     description: 'Security research, AI engineering, and technical writing.',
     feedItems: 20,
   },
 
   seo: {
     titleSeparator: ' — ',
-    titleSuffix: 'BLOG-CMS',
+    titleSuffix: 'w4nn4d13',
     twitterCard: 'summary_large_image' as const,
     twitterSite: '',
   },
