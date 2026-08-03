@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import { SITE } from './src/config/site.ts';
 
 export default defineConfig({
-  site: SITE.siteURL,
+  site: 'https://w4nn4d13.tech',
   integrations: [
     mdx(),
     sitemap({

@@ -31,7 +31,17 @@ if (data.series) {
     .sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
 }
 
-// Schema.org
+// Build keywords from tags + hashtags
+const postKeywords = [
+  data.category,
+  ...data.tags,
+  ...data.hashtags.map(h => h.replace(/^#/, '')),
+  SITE.author,
+  'security research',
+  'vulnerability research',
+].filter(Boolean).join(', ');
+
+// Schema.org BlogPosting — rich
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -44,14 +54,34 @@ const schema = {
     '@type': 'Person',
     name: data.author,
     url: new URL(`/author/${slugify(data.author)}/`, SITE.siteURL).toString(),
+    sameAs: [SITE.social.github, SITE.authorURL].filter(Boolean),
   },
   publisher: {
-    '@type': 'Organization',
-    name: SITE.siteName,
+    '@type': 'Person',
+    name: SITE.author,
     url: SITE.siteURL,
   },
-  mainEntityOfPage: postUrl,
-  ...(data.cover ? { image: new URL(data.cover, SITE.siteURL).toString() } : {}),
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postUrl,
+  },
+  keywords: postKeywords,
+  articleSection: data.category,
+  inLanguage: 'en-US',
+  isAccessibleForFree: true,
+  ...(data.cover ? {
+    image: {
+      '@type': 'ImageObject',
+      url: new URL(data.cover, SITE.siteURL).toString(),
+    },
+  } : {}),
+  ...(data.series ? {
+    isPartOf: {
+      '@type': 'CreativeWorkSeries',
+      name: data.series,
+      url: new URL(`/series/${slugify(data.series)}/`, SITE.siteURL).toString(),
+    },
+  } : {}),
 };
 ---
 
@@ -66,6 +96,7 @@ const schema = {
   updatedDate={data.updated}
   author={data.author}
   schema={schema}
+  keywords={postKeywords}
 >
   <!-- Breadcrumb -->
   <nav class="breadcrumb" aria-label="Breadcrumb">

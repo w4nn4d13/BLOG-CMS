@@ -1,10 +1,11 @@
 export const SITE = {
   siteName: 'w4nn4d13',
-  siteDescription: 'Security research, AI engineering, and technical writing by w4nn4d13.',
-  siteURL: 'https://blog.w4nn4d13.dev',
+  siteDescription: 'Security research, vulnerability writeups, CVE disclosures, and AI engineering by w4nn4d13.',
+  siteURL: 'https://w4nn4d13.tech',
   author: 'w4nn4d13',
   authorRole: 'Security Researcher · AI Engineer',
-  authorBio: 'Security researcher and AI engineer. Writing about vulnerability research, web security, agentic AI systems, and technical computing.',
+  authorBio: 'Security researcher and AI engineer. Writing about vulnerability research, CVE disclosures, web security, agentic AI systems, and technical computing.',
+  authorURL: 'https://w4nn4d13.tech',
   locale: 'en-US',
   timezone: 'UTC',
 
@@ -32,8 +33,8 @@ export const SITE = {
   },
 
   rss: {
-    title: 'w4nn4d13',
-    description: 'Security research, AI engineering, and technical writing.',
+    title: 'w4nn4d13 — Security Research',
+    description: 'Security research, CVE disclosures, vulnerability writeups, and AI engineering.',
     feedItems: 20,
   },
 
@@ -42,6 +43,7 @@ export const SITE = {
     titleSuffix: 'w4nn4d13',
     twitterCard: 'summary_large_image' as const,
     twitterSite: '',
+    keywords: 'security research, vulnerability research, CVE, bug bounty, web security, penetration testing, AI security, w4nn4d13',
   },
 
   analytics: {

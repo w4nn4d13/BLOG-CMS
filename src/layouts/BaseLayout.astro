@@ -13,6 +13,7 @@ interface Props {
   updatedDate?: Date;
   author?: string;
   schema?: object;
+  keywords?: string;
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   updatedDate,
   author = SITE.author,
   schema,
+  keywords,
 } = Astro.props;
 
 const pageTitle = title
@@ -33,7 +35,7 @@ const pageTitle = title
   : SITE.siteName;
 
 const canonicalURL = canonical
-  ? new URL(canonical, SITE.siteURL).toString()
+  ? (canonical.startsWith('http') ? canonical : new URL(canonical, SITE.siteURL).toString())
   : new URL(Astro.url.pathname, SITE.siteURL).toString();
 
 const ogImageURL = ogImage
@@ -41,6 +43,71 @@ const ogImageURL = ogImage
   : new URL(SITE.defaultOGImage, SITE.siteURL).toString();
 
 const currentPath = Astro.url.pathname;
+
+const metaKeywords = keywords || SITE.seo.keywords;
+
+// WebSite schema with SearchAction — always present
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.siteName,
+  url: SITE.siteURL,
+  description: SITE.siteDescription,
+  author: {
+    '@type': 'Person',
+    name: SITE.author,
+    url: SITE.authorURL,
+  },
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${SITE.siteURL}/search/?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+// Person schema for author pages
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: SITE.author,
+  url: SITE.authorURL,
+  sameAs: [
+    SITE.social.github,
+  ].filter(Boolean),
+};
+
+// Breadcrumb list schema
+const breadcrumbItems: Array<{ name: string; item: string }> = [
+  { name: 'Home', item: SITE.siteURL + '/' },
+];
+if (currentPath !== '/') {
+  const segments = currentPath.replace(/\/$/, '').split('/').filter(Boolean);
+  let cumulative = SITE.siteURL;
+  for (const seg of segments) {
+    cumulative += '/' + seg;
+    breadcrumbItems.push({ name: seg.replace(/-/g, ' '), item: cumulative + '/' });
+  }
+}
+const breadcrumbSchema = breadcrumbItems.length > 1 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems.map((item, idx) => ({
+    '@type': 'ListItem',
+    position: idx + 1,
+    name: item.name,
+    item: item.item,
+  })),
+} : null;
+
+const combinedSchema = [
+  websiteSchema,
+  personSchema,
+  ...(breadcrumbSchema ? [breadcrumbSchema] : []),
+  ...(schema ? [schema] : []),
+];
 ---
 
 <!doctype html>
@@ -50,11 +117,16 @@ const currentPath = Astro.url.pathname;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Core SEO -->
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
-    {!noindex && <meta name="robots" content="index, follow" />}
+    <meta name="keywords" content={metaKeywords} />
+    <meta name="author" content={author} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
     <link rel="canonical" href={canonicalURL} />
+
+    <!-- Locale -->
+    <meta property="og:locale" content={SITE.locale.replace('-', '_')} />
 
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
@@ -63,27 +135,34 @@ const currentPath = Astro.url.pathname;
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:site_name" content={SITE.siteName} />
     <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:alt" content={pageTitle} />
     {publishedDate && <meta property="article:published_time" content={publishedDate.toISOString()} />}
     {updatedDate && <meta property="article:modified_time" content={updatedDate.toISOString()} />}
-    {author && <meta property="article:author" content={author} />}
+    {author && ogType === 'article' && <meta property="article:author" content={`${SITE.siteURL}/author/${author.toLowerCase().replace(/\s+/g, '-')}/`} />}
+    {ogType === 'article' && <meta property="article:publisher" content={SITE.siteURL} />}
 
-    <!-- Twitter/X Card -->
+    <!-- Twitter / X Card -->
     <meta name="twitter:card" content={SITE.seo.twitterCard} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageURL} />
+    <meta name="twitter:image:alt" content={pageTitle} />
     {SITE.seo.twitterSite && <meta name="twitter:site" content={SITE.seo.twitterSite} />}
+    <meta name="twitter:creator" content={`@${SITE.author}`} />
 
-    <!-- RSS -->
-    <link rel="alternate" type="application/rss+xml" title={SITE.rss.title} href="/rss.xml" />
+    <!-- Dates for crawlers -->
+    {publishedDate && <meta name="article:published_time" content={publishedDate.toISOString()} />}
+    {updatedDate && <meta name="article:modified_time" content={updatedDate.toISOString()} />}
+
+    <!-- Feeds -->
+    <link rel="alternate" type="application/rss+xml" title={SITE.rss.title} href={`${SITE.siteURL}/rss.xml`} />
+    <link rel="alternate" type="application/feed+json" title={SITE.rss.title} href={`${SITE.siteURL}/feed.json`} />
 
     <!-- Favicon -->
     <link rel="icon" href={SITE.favicon} />
 
-    <!-- Schema.org structured data -->
-    {schema && (
-      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-    )}
+    <!-- Schema.org JSON-LD — all schemas combined -->
+    <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} />
 
     <!-- Analytics (optional, disabled by default) -->
     {SITE.analytics.enabled && SITE.analytics.provider === 'plausible' && (
@@ -92,7 +171,6 @@ const currentPath = Astro.url.pathname;
     {SITE.analytics.enabled && SITE.analytics.provider === 'umami' && (
       <script defer data-website-id={SITE.analytics.dataId} src={SITE.analytics.scriptSrc} />
     )}
-
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
@@ -110,7 +188,6 @@ const currentPath = Astro.url.pathname;
               {item.label}
             </a>
           ))}
-
         </nav>
 
         <button
