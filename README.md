@@ -660,4 +660,4 @@ The GitHub Actions workflow also runs validation and blocks deployment on errors
 
 ---
 
-*Built with Astro · Deployed via GitHub Actions*
+
