@@ -9,6 +9,7 @@ export async function getStaticPaths() {
 
   return allPosts
     .filter((post) => {
+      if (import.meta.env.DEV) return true;
       if (post.data.draft) return false;
       if (post.data.date > now) return false;
       return true;

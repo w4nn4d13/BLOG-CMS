@@ -11,6 +11,7 @@ export async function getAllPosts(): Promise<Post[]> {
 
   return all
     .filter((p) => {
+      if (import.meta.env.DEV) return true;
       if (p.data.draft) return false;
       const postDateStr = p.data.date.toISOString().slice(0, 10);
       if (postDateStr > todayStr) return false;
