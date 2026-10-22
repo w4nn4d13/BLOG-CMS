@@ -5,6 +5,9 @@ import { SITE } from './src/config/site.ts';
 
 export default defineConfig({
   site: 'https://w4nn4d13.tech',
+  redirects: {
+    '/posts/the-forgotten-access-stage-1-osint/': '/posts/the-forgetten-acess/',
+  },
   integrations: [
     mdx(),
     sitemap({
