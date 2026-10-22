@@ -51,7 +51,6 @@ for (const file of files) {
   if (!fm) { err(file, 'Missing or malformed frontmatter'); continue; }
 
   if (!fm.title) err(file, 'Missing required field: title');
-  if (!fm.description) err(file, 'Missing required field: description');
   if (!fm.date) err(file, 'Missing required field: date');
   else if (isNaN(Date.parse(fm.date))) err(file, `Invalid date: ${fm.date}`);
 

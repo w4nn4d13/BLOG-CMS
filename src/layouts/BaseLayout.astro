@@ -159,7 +159,8 @@ const combinedSchema = [
     <link rel="alternate" type="application/feed+json" title={SITE.rss.title} href={`${SITE.siteURL}/feed.json`} />
 
     <!-- Favicon -->
-    <link rel="icon" href={SITE.favicon} />
+    <link rel="icon" type="image/png" sizes="48x48" href={SITE.faviconFallback} />
+    <link rel="icon" type="image/svg+xml" sizes="any" href={SITE.favicon} />
 
     <!-- Schema.org JSON-LD — all schemas combined -->
     <script type="application/ld+json" set:html={JSON.stringify(combinedSchema)} />
@@ -177,7 +178,12 @@ const combinedSchema = [
 
     <header class="site-header" role="banner">
       <div class="site-header__inner">
-        <a href="/" class="site-logo">{SITE.siteName}</a>
+        <a href="/" class="site-logo" aria-label={`${SITE.siteName} home`}>
+          <picture>
+            <source srcset={SITE.logo} type="image/svg+xml" />
+            <img src={SITE.logoFallback} alt="W4NN4D13" width="228" height="48" fetchpriority="high" />
+          </picture>
+        </a>
 
         <nav class="site-nav" id="site-nav" aria-label="Main navigation">
           {SITE.navigation.map((item) => (

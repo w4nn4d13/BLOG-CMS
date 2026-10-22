@@ -14,7 +14,10 @@ export const SITE = {
   excerptLength: 200,
 
   defaultOGImage: '/og-default.png',
-  favicon: '/favicon.ico',
+  logo: '/icon/logo.svg',
+  logoFallback: '/icon/logo.png',
+  favicon: '/icon/favicon.svg',
+  faviconFallback: '/icon/favicon.png',
 
   navigation: [
     { label: 'HOME', href: '/' },

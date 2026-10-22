@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>W4NN4D13</title>
+  <style>
+    .tile { fill: #fff; stroke: #0a0a0a; }
+    .mark { stroke: #0a0a0a; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #0a0a0a; stroke: #888; }
+      .mark { stroke: #fff; }
+    }
+  </style>
+  <rect class="tile" x="2" y="2" width="44" height="44" stroke-width="2"/>
+  <path class="mark" d="M10 13 16 35 24 20 32 35 38 13" fill="none" stroke-width="3" stroke-linejoin="miter"/>
+</svg>
