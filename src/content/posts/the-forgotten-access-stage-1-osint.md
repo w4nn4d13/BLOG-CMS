@@ -16,7 +16,7 @@ hashtags:
   - "#CyberSecurity"
   - "#AISecurity"
 featured: true
-draft: true
+draft: false
 series: "The Forgotten Access"
 seriesOrder: 1
 toc: true
