@@ -15,7 +15,7 @@ hashtags:
   - "#OSINT"
   - "#CyberSecurity"
   - "#AISecurity"
-featured: false
+featured: true
 draft: true
 series: "The Forgotten Access"
 seriesOrder: 1

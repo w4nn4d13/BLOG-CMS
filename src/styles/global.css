@@ -803,7 +803,21 @@ h4:hover .heading-anchor { opacity: 1; }
   padding: var(--space-4);
   background: var(--bg-alt);
   font-size: var(--text-sm);
+  max-height: calc(100vh - 80px - var(--space-4));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
+
+/* Use square, border-colored controls where custom scrollbars are supported. */
+@supports selector(::-webkit-scrollbar) {
+  .toc { scrollbar-width: auto; scrollbar-color: auto; }
+}
+.toc::-webkit-scrollbar { width: 4px; }
+.toc::-webkit-scrollbar-track { background: transparent; margin-block: var(--space-2); }
+.toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
+.toc::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
+.toc::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
 .toc__title {
   font-family: var(--font-ui);
@@ -833,6 +847,7 @@ h4:hover .heading-anchor { opacity: 1; }
   line-height: 1.4;
   display: block;
   padding: 1px 0;
+  overflow-wrap: anywhere;
 }
 .toc a:hover { color: var(--fg); }
 .toc a.active { color: var(--fg); font-weight: 700; }
@@ -1161,6 +1176,9 @@ h4:hover .heading-anchor { opacity: 1; }
   .article-sidebar {
     position: static;
     order: -1;
+  }
+  .toc {
+    max-height: 50vh;
   }
   .home-grid {
     grid-template-columns: 1fr;
