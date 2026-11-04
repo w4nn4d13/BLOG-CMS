@@ -1,11 +1,11 @@
 export const SITE = {
   siteName: 'w4nn4d13',
   siteDescription: 'Security research, vulnerability writeups, CVE disclosures, and AI engineering by w4nn4d13.',
-  siteURL: 'https://w4nn4d13.tech',
+  siteURL: 'https://w4nn4d13.in',
   author: 'w4nn4d13',
   authorRole: 'Security Researcher · AI Engineer',
   authorBio: 'Security researcher and AI engineer. Writing about vulnerability research, CVE disclosures, web security, agentic AI systems, and technical computing.',
-  authorURL: 'https://w4nn4d13.tech',
+  authorURL: 'https://w4nn4d13.in',
   locale: 'en-US',
   timezone: 'UTC',
 

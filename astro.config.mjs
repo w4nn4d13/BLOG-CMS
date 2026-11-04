@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import { SITE } from './src/config/site.ts';
 
 export default defineConfig({
-  site: 'https://w4nn4d13.tech',
+  site: SITE.siteURL,
   redirects: {
     '/posts/the-forgotten-access-stage-1-osint/': '/posts/the-forgetten-acess/',
   },
