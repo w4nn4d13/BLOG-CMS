@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "ref": "disable_csp_blocked_rum",
+      "description": "Do not inject an analytics script blocked by these sites' existing CSP",
+      "expression": "http.host in {\"attackgraph.w4nn4d13.in\" \"chat.w4nn4d13.in\"}",
+      "action": "set_config",
+      "action_parameters": { "disable_rum": true },
+      "enabled": true
+    }
+  ]
+}

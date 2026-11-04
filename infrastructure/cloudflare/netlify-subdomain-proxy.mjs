@@ -8,7 +8,7 @@ const ORIGINS = Object.freeze({
 export default {
   async fetch(request) {
     const publicURL = new URL(request.url);
-    const origin = ORIGINS[publicURL.hostname];
+    const origin = Object.hasOwn(ORIGINS, publicURL.hostname) ? ORIGINS[publicURL.hostname] : undefined;
     if (!origin) return new Response('Not found', { status: 404 });
 
     const upstreamURL = new URL(request.url);

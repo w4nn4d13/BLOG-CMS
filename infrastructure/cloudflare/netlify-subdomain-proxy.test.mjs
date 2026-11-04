@@ -34,7 +34,11 @@ test('keeps origin redirects on the public hostname', async () => {
 test('does not proxy arbitrary hosts', async () => {
   const savedFetch = globalThis.fetch;
   globalThis.fetch = async () => { throw new Error('unexpected request'); };
-  try { assert.equal((await worker.fetch(new Request('https://unrelated.example/'))).status, 404); }
+  try {
+    for (const url of ['https://unrelated.example/', 'https://constructor/']) {
+      assert.equal((await worker.fetch(new Request(url))).status, 404);
+    }
+  }
   finally { globalThis.fetch = savedFetch; }
 });
 
