@@ -1,0 +1,41 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Keep all domain aliases on this same site. Query parameters are forwarded
+# automatically because the target URLs do not specify a query string.
+[[redirects]]
+  from = "https://w4nn4d13.tech/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://w4nn4d13.tech/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.w4nn4d13.tech/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.w4nn4d13.tech/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.w4nn4d13.in/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.w4nn4d13.in/*"
+  to = "https://w4nn4d13.in/:splat"
+  status = 301
+  force = true
