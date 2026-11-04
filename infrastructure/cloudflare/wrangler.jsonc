@@ -1,0 +1,10 @@
+{
+  "name": "netlify-subdomain-router",
+  "main": "netlify-subdomain-proxy.mjs",
+  "compatibility_date": "2026-11-04",
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "advisory.w4nn4d13.in/*", "zone_name": "w4nn4d13.in" },
+    { "pattern": "attackgraph.w4nn4d13.in/*", "zone_name": "w4nn4d13.in" }
+  ]
+}
