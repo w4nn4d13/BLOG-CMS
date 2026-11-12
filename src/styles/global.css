@@ -9,7 +9,7 @@
   --bg-code:     #f0f0f0;
   --fg:          #0a0a0a;
   --fg-muted:    #555555;
-  --fg-subtle:   #888888;
+  --fg-subtle:   #6b6b6b;
   --border:      #d0d0d0;
   --border-dark: #222222;
   --accent:      #0a0a0a;
@@ -17,8 +17,10 @@
   --link-hover:  #444444;
 
   --font-sans:   'Georgia', 'Times New Roman', serif;
-  --font-mono:   'Courier New', 'Courier', monospace;
-  --font-ui:     'Courier New', 'Courier', monospace;
+  /* IBM Plex: a technical sans and mono pair suited to security writing.
+     Replaces the Courier New fallback that set every heading and label. */
+  --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
+  --font-ui:     'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 
   --text-xs:     0.75rem;
   --text-sm:     0.85rem;
@@ -515,6 +517,13 @@ input[type="checkbox"] { margin-right: var(--space-2); }
   padding: var(--space-6);
   margin-bottom: var(--space-8);
 }
+/* Lead post gets the heavy frame and large title; supporting posts sit quieter. */
+.featured-post--supporting {
+  border: 1px solid var(--border);
+}
+.featured-post--supporting .featured-post__title {
+  font-size: var(--text-xl);
+}
 .featured-post__label {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -974,6 +983,11 @@ h4:hover .heading-anchor { opacity: 1; }
   color: var(--fg);
   outline: none;
 }
+.search-form input:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+
 .search-form button {
   background: var(--fg);
   color: var(--bg);
@@ -1292,4 +1306,36 @@ h4:hover .heading-anchor { opacity: 1; }
   .site-main { padding: 0; max-width: 100%; }
   .article-content { max-width: 100%; }
   .article-header__title { font-size: 18pt; }
+}
+
+/* --- Touch targets (R-03): interactive controls at least 44px on small screens --- */
+@media (max-width: 640px) {
+  .nav-toggle,
+  .site-logo,
+  .section-head__more,
+  .badge,
+  .hashtag,
+  .footer-brand__name,
+  .footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .post-row__title a,
+  .post-row__meta a,
+  .featured-post__title a,
+  .featured-post__meta a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 6px;
+    margin: -12px -6px;
+  }
+  aside a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }

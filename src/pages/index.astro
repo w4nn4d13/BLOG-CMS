@@ -30,9 +30,6 @@ const schema = {
 >
   <!-- Site masthead -->
   <div style="border-bottom: 1px solid var(--border); margin-bottom: var(--space-10); padding-bottom: var(--space-8);">
-    <div style="font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-subtle); margin-bottom: var(--space-3);">
-      {SITE.author} — {SITE.authorRole}
-    </div>
     <h1 style="font-size: var(--text-4xl); font-family: var(--font-ui); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: var(--space-3);">
       {SITE.siteName}
     </h1>
@@ -48,10 +45,10 @@ const schema = {
         <section aria-label="Featured articles" style="margin-bottom: var(--space-10);">
           <div class="section-head">
             <span class="section-head__title">Featured</span>
-            <a href="/latest/" class="section-head__more">All articles →</a>
+            <a href="/latest/" class="section-head__more">All articles</a>
           </div>
-          {featured.map((post) => (
-            <article class="featured-post">
+          {featured.map((post, i) => (
+            <article class={i === 0 ? 'featured-post featured-post--lead' : 'featured-post featured-post--supporting'}>
               <div class="featured-post__label">Featured · {post.data.category}</div>
               <h2 class="featured-post__title">
                 <a href={getPostUrl(post)}>{post.data.title}</a>
@@ -100,7 +97,7 @@ const schema = {
       <section aria-label="Latest publications">
         <div class="section-head">
           <span class="section-head__title">Latest Publications</span>
-          <a href="/latest/" class="section-head__more">All →</a>
+          <a href="/latest/" class="section-head__more">All</a>
         </div>
         <ul class="post-list">
           {latest.map((post) => (
@@ -121,7 +118,6 @@ const schema = {
               </div>
               <div class="post-row__badges">
                 {post.data.featured && <span class="badge badge--filled">FEATURED</span>}
-                <a href={`/category/${slugify(post.data.category)}/`} class="badge">{post.data.category}</a>
               </div>
             </li>
           ))}
@@ -130,7 +126,7 @@ const schema = {
         {allPosts.length > SITE.postsPerPage && (
           <div style="text-align: center; margin-top: var(--space-8);">
             <a href="/latest/" class="badge badge--muted" style="padding: var(--space-2) var(--space-8); font-size: var(--text-xs);">
-              View all {allPosts.length} articles →
+              View all {allPosts.length} articles
             </a>
           </div>
         )}
@@ -184,7 +180,7 @@ const schema = {
         </div>
         <div style="font-family: var(--font-mono); font-size: var(--text-xs);">
           <a href="/archive/" style="color: var(--fg-muted); text-decoration: none;">
-            Browse {allPosts.length} articles by date →
+            Browse {allPosts.length} articles by date
           </a>
         </div>
       </section>
